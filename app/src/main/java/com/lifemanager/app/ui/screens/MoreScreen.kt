@@ -29,72 +29,17 @@ fun MoreScreen() {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item { SectionHeader("Tools") }
-            item {
-                MoreMenuItem(
-                    icon = Icons.Filled.ShoppingCart,
-                    title = "Shopping Lists",
-                    subtitle = "Manage your shopping lists"
-                )
-            }
-            item {
-                MoreMenuItem(
-                    icon = Icons.Filled.Home,
-                    title = "Address History",
-                    subtitle = "Track your residential history"
-                )
-            }
-            item {
-                MoreMenuItem(
-                    icon = Icons.Filled.Notifications,
-                    title = "Reminders",
-                    subtitle = "Bills, loans and custom reminders"
-                )
-            }
-            item {
-                MoreMenuItem(
-                    icon = Icons.Filled.Folder,
-                    title = "Document Vault",
-                    subtitle = "Store important documents"
-                )
-            }
-            item {
-                MoreMenuItem(
-                    icon = Icons.Filled.BarChart,
-                    title = "Analytics",
-                    subtitle = "Trends and insights"
-                )
-            }
-
+            item { MoreMenuItem(icon = Icons.Filled.ShoppingCart, title = "Shopping Lists", subtitle = "Manage your shopping lists") }
+            item { MoreMenuItem(icon = Icons.Filled.Home, title = "Address History", subtitle = "Track your residential history") }
+            item { MoreMenuItem(icon = Icons.Filled.Notifications, title = "Reminders", subtitle = "Bills, loans and custom reminders") }
+            item { MoreMenuItem(icon = Icons.Filled.Folder, title = "Document Vault", subtitle = "Store important documents") }
+            item { MoreMenuItem(icon = Icons.Filled.BarChart, title = "Analytics", subtitle = "Trends and insights") }
             item { Spacer(modifier = Modifier.height(8.dp)) }
             item { SectionHeader("Settings & Data") }
-            item {
-                MoreMenuItem(
-                    icon = Icons.Filled.Lock,
-                    title = "Security",
-                    subtitle = "PIN and fingerprint lock"
-                )
-            }
-            item {
-                MoreMenuItem(
-                    icon = Icons.Filled.Backup,
-                    title = "Backup & Restore",
-                    subtitle = "Export and import your data"
-                )
-            }
-            item {
-                MoreMenuItem(
-                    icon = Icons.Filled.Palette,
-                    title = "Appearance",
-                    subtitle = "Dark mode, colors, font size"
-                )
-            }
-            item {
-                MoreMenuItem(
-                    icon = Icons.Filled.Info,
-                    title = "About",
-                    subtitle = "Version 1.0"
-                )
-            }
+            item { MoreMenuItem(icon = Icons.Filled.Lock, title = "Security", subtitle = "PIN and fingerprint lock") }
+            item { MoreMenuItem(icon = Icons.Filled.Backup, title = "Backup & Restore", subtitle = "Export and import your data") }
+            item { MoreMenuItem(icon = Icons.Filled.Palette, title = "Appearance", subtitle = "Dark mode, colors, font size") }
+            item { MoreMenuItem(icon = Icons.Filled.Info, title = "About", subtitle = "Version 1.0") }
         }
     }
 }
@@ -116,10 +61,7 @@ fun MoreMenuItem(
     title: String,
     subtitle: String
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = {}
-    ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -127,14 +69,12 @@ fun MoreMenuItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Icon(
-                icon,
-                contentDescription = null,
+            Icon(icon, contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
+                modifier = Modifier.size(24.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                Text(title, style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium)
                 Text(subtitle, style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
