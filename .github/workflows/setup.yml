@@ -17,104 +17,19 @@ jobs:
           mkdir -p app/src/main/java/com/lifemanager/app/viewmodel
           mkdir -p app/src/main/java/com/lifemanager/app/ui/screens
 
-          cat > app/src/main/java/com/lifemanager/app/LifeManagerApp.kt << 'ENDOFFILE'
+          cat > app/src/main/java/com/lifemanager/app/LifeManagerApp.kt << 'EOF'
           package com.lifemanager.app
-
           import android.app.Application
           import com.lifemanager.app.data.database.AppDatabase
           import com.lifemanager.app.data.repository.AppRepository
-
           class LifeManagerApp : Application() {
               val database by lazy { AppDatabase.getDatabase(this) }
-              val repository by lazy {
-                  AppRepository(
-                      database.expenseDao(),
-                      database.incomeDao(),
-                      database.loanDao(),
-                      database.vehicleDao(),
-                      database.fuelDao(),
-                      database.shoppingDao(),
-                      database.addressDao(),
-                      database.reminderDao(),
-                      database.noteDao(),
-                      database.documentDao(),
-                      database.savingsDao()
-                  )
-              }
+              val repository by lazy { AppRepository(database.expenseDao(),database.incomeDao(),database.loanDao(),database.vehicleDao(),database.fuelDao(),database.shoppingDao(),database.addressDao(),database.reminderDao(),database.noteDao(),database.documentDao(),database.savingsDao()) }
           }
-          ENDOFFILE
+          EOF
 
-          cat > app/src/main/java/com/lifemanager/app/data/repository/AppRepository.kt << 'ENDOFFILE'
-          package com.lifemanager.app.data.repository
-
-          import com.lifemanager.app.data.dao.*
-          import com.lifemanager.app.data.entities.*
-
-          class AppRepository(
-              private val expenseDao: ExpenseDao,
-              private val incomeDao: IncomeDao,
-              private val loanDao: LoanDao,
-              private val vehicleDao: VehicleDao,
-              private val fuelDao: FuelDao,
-              private val shoppingDao: ShoppingDao,
-              private val addressDao: AddressDao,
-              private val reminderDao: ReminderDao,
-              private val noteDao: NoteDao,
-              private val documentDao: DocumentDao,
-              private val savingsDao: SavingsDao
-          ) {
-              fun getAllExpenses() = expenseDao.getAllExpenses()
-              fun getTotalExpenses(start: Long, end: Long) = expenseDao.getTotalExpenses(start, end)
-              suspend fun insertExpense(expense: ExpenseEntity) = expenseDao.insertExpense(expense)
-              suspend fun updateExpense(expense: ExpenseEntity) = expenseDao.updateExpense(expense)
-              suspend fun deleteExpense(expense: ExpenseEntity) = expenseDao.deleteExpense(expense)
-              fun getAllIncomes() = incomeDao.getAllIncomes()
-              fun getTotalIncome(start: Long, end: Long) = incomeDao.getTotalIncome(start, end)
-              suspend fun insertIncome(income: IncomeEntity) = incomeDao.insertIncome(income)
-              suspend fun deleteIncome(income: IncomeEntity) = incomeDao.deleteIncome(income)
-              fun getAllLoans() = loanDao.getAllLoans()
-              suspend fun insertLoan(loan: LoanEntity) = loanDao.insertLoan(loan)
-              suspend fun deleteLoan(loan: LoanEntity) = loanDao.deleteLoan(loan)
-              suspend fun insertPayment(payment: LoanPaymentEntity) = loanDao.insertPayment(payment)
-              fun getAllVehicles() = vehicleDao.getAllVehicles()
-              suspend fun insertVehicle(vehicle: VehicleEntity) = vehicleDao.insertVehicle(vehicle)
-              suspend fun deleteVehicle(vehicle: VehicleEntity) = vehicleDao.deleteVehicle(vehicle)
-              fun getAllFuelEntries() = fuelDao.getAllFuelEntries()
-              fun getFuelEntriesForVehicle(vehicleId: Long) = fuelDao.getFuelEntriesForVehicle(vehicleId)
-              suspend fun insertFuelEntry(entry: FuelEntryEntity) = fuelDao.insertFuelEntry(entry)
-              suspend fun deleteFuelEntry(entry: FuelEntryEntity) = fuelDao.deleteFuelEntry(entry)
-              fun getAllShoppingLists() = shoppingDao.getAllLists()
-              fun getItemsForList(listId: Long) = shoppingDao.getItemsForList(listId)
-              suspend fun insertShoppingList(list: ShoppingListEntity) = shoppingDao.insertList(list)
-              suspend fun insertShoppingItem(item: ShoppingItemEntity) = shoppingDao.insertItem(item)
-              suspend fun updateShoppingItem(item: ShoppingItemEntity) = shoppingDao.updateItem(item)
-              suspend fun deleteShoppingItem(item: ShoppingItemEntity) = shoppingDao.deleteItem(item)
-              fun getAllAddresses() = addressDao.getAllAddresses()
-              suspend fun insertAddress(address: AddressEntity) = addressDao.insertAddress(address)
-              suspend fun deleteAddress(address: AddressEntity) = addressDao.deleteAddress(address)
-              fun getAllReminders() = reminderDao.getAllReminders()
-              fun getActiveReminders() = reminderDao.getActiveReminders()
-              suspend fun insertReminder(reminder: ReminderEntity) = reminderDao.insertReminder(reminder)
-              suspend fun updateReminder(reminder: ReminderEntity) = reminderDao.updateReminder(reminder)
-              suspend fun deleteReminder(reminder: ReminderEntity) = reminderDao.deleteReminder(reminder)
-              fun getAllNotes() = noteDao.getAllNotes()
-              fun searchNotes(query: String) = noteDao.searchNotes(query)
-              suspend fun insertNote(note: NoteEntity) = noteDao.insertNote(note)
-              suspend fun updateNote(note: NoteEntity) = noteDao.updateNote(note)
-              suspend fun deleteNote(note: NoteEntity) = noteDao.deleteNote(note)
-              fun getAllDocuments() = documentDao.getAllDocuments()
-              suspend fun insertDocument(document: DocumentEntity) = documentDao.insertDocument(document)
-              suspend fun deleteDocument(document: DocumentEntity) = documentDao.deleteDocument(document)
-              fun getAllSavings() = savingsDao.getAllSavings()
-              fun getTotalSavings() = savingsDao.getTotalSavings()
-              suspend fun insertSavings(savings: SavingsEntity) = savingsDao.insertSavings(savings)
-              suspend fun deleteSavings(savings: SavingsEntity) = savingsDao.deleteSavings(savings)
-          }
-          ENDOFFILE
-
-          cat > app/src/main/java/com/lifemanager/app/viewmodel/AppViewModel.kt << 'ENDOFFILE'
+          cat > app/src/main/java/com/lifemanager/app/viewmodel/AppViewModel.kt << 'EOF'
           package com.lifemanager.app.viewmodel
-
           import android.app.Application
           import androidx.lifecycle.*
           import com.lifemanager.app.LifeManagerApp
@@ -123,124 +38,566 @@ jobs:
           import kotlinx.coroutines.flow.stateIn
           import kotlinx.coroutines.launch
           import java.util.Calendar
-
           class AppViewModel(application: Application) : AndroidViewModel(application) {
               private val repository = (application as LifeManagerApp).repository
-
               val allExpenses = repository.getAllExpenses().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
               val allIncomes = repository.getAllIncomes().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
               val allLoans = repository.getAllLoans().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
               val allVehicles = repository.getAllVehicles().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
               val allFuelEntries = repository.getAllFuelEntries().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-              val allShoppingLists = repository.getAllShoppingLists().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-              val allAddresses = repository.getAllAddresses().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-              val allReminders = repository.getAllReminders().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
               val allNotes = repository.getAllNotes().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-              val allDocuments = repository.getAllDocuments().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+              val allReminders = repository.getAllReminders().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
               val allSavings = repository.getAllSavings().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
               val totalSavings = repository.getTotalSavings().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+              fun insertExpense(title: String, amount: Double, category: String, notes: String = "") = viewModelScope.launch { repository.insertExpense(ExpenseEntity(title=title,amount=amount,category=category,date=System.currentTimeMillis(),notes=notes)) }
+              fun deleteExpense(e: ExpenseEntity) = viewModelScope.launch { repository.deleteExpense(e) }
+              fun insertIncome(title: String, amount: Double, source: String, notes: String = "") = viewModelScope.launch { repository.insertIncome(IncomeEntity(title=title,amount=amount,source=source,date=System.currentTimeMillis(),notes=notes)) }
+              fun deleteIncome(i: IncomeEntity) = viewModelScope.launch { repository.deleteIncome(i) }
+              fun insertLoan(name: String, lenderBorrower: String, principal: Double, interestRate: Double, interestType: String, startDate: Long, dueDate: Long) = viewModelScope.launch { repository.insertLoan(LoanEntity(name=name,lenderBorrower=lenderBorrower,principal=principal,interestRate=interestRate,interestType=interestType,isCompound=false,startDate=startDate,dueDate=dueDate)) }
+              fun deleteLoan(l: LoanEntity) = viewModelScope.launch { repository.deleteLoan(l) }
+              fun insertVehicle(name: String, regNumber: String, fuelType: String) = viewModelScope.launch { repository.insertVehicle(VehicleEntity(name=name,registrationNumber=regNumber,fuelType=fuelType)) }
+              fun deleteVehicle(v: VehicleEntity) = viewModelScope.launch { repository.deleteVehicle(v) }
+              fun insertFuelEntry(vehicleId: Long, odometer: Double, quantity: Double, cost: Double, station: String = "") = viewModelScope.launch { repository.insertFuelEntry(FuelEntryEntity(vehicleId=vehicleId,date=System.currentTimeMillis(),odometer=odometer,quantity=quantity,cost=cost,station=station)) }
+              fun deleteFuelEntry(f: FuelEntryEntity) = viewModelScope.launch { repository.deleteFuelEntry(f) }
+              fun insertNote(title: String, content: String) = viewModelScope.launch { val now=System.currentTimeMillis(); repository.insertNote(NoteEntity(title=title,content=content,createdAt=now,updatedAt=now)) }
+              fun deleteNote(n: NoteEntity) = viewModelScope.launch { repository.deleteNote(n) }
+              fun insertReminder(title: String, description: String, dueDate: Long) = viewModelScope.launch { repository.insertReminder(ReminderEntity(title=title,description=description,dueDate=dueDate)) }
+              fun deleteReminder(r: ReminderEntity) = viewModelScope.launch { repository.deleteReminder(r) }
+              fun insertSavings(name: String, type: String, amount: Double) = viewModelScope.launch { repository.insertSavings(SavingsEntity(name=name,type=type,amount=amount,date=System.currentTimeMillis())) }
+              fun deleteSavings(s: SavingsEntity) = viewModelScope.launch { repository.deleteSavings(s) }
+              fun getMonthStart(): Long { val c=Calendar.getInstance(); c.set(Calendar.DAY_OF_MONTH,1); c.set(Calendar.HOUR_OF_DAY,0); c.set(Calendar.MINUTE,0); c.set(Calendar.SECOND,0); return c.timeInMillis }
+              fun getMonthEnd(): Long { val c=Calendar.getInstance(); c.set(Calendar.DAY_OF_MONTH,c.getActualMaximum(Calendar.DAY_OF_MONTH)); c.set(Calendar.HOUR_OF_DAY,23); c.set(Calendar.MINUTE,59); c.set(Calendar.SECOND,59); return c.timeInMillis }
+          }
+          class AppViewModelFactory(private val app: Application) : ViewModelProvider.Factory {
+              override fun <T : ViewModel> create(modelClass: Class<T>): T { if (modelClass.isAssignableFrom(AppViewModel::class.java)) { @Suppress("UNCHECKED_CAST") return AppViewModel(app) as T }; throw IllegalArgumentException("Unknown ViewModel") }
+          }
+          EOF
 
-              fun insertExpense(title: String, amount: Double, category: String, notes: String = "") {
-                  viewModelScope.launch {
-                      repository.insertExpense(ExpenseEntity(title = title, amount = amount, category = category, date = System.currentTimeMillis(), notes = notes))
+          cat > app/src/main/java/com/lifemanager/app/ui/screens/NotesScreen.kt << 'EOF'
+          package com.lifemanager.app.ui.screens
+          import androidx.compose.foundation.layout.*
+          import androidx.compose.foundation.lazy.LazyColumn
+          import androidx.compose.foundation.lazy.items
+          import androidx.compose.material.icons.Icons
+          import androidx.compose.material.icons.filled.*
+          import androidx.compose.material3.*
+          import androidx.compose.runtime.*
+          import androidx.compose.ui.Alignment
+          import androidx.compose.ui.Modifier
+          import androidx.compose.ui.text.font.FontWeight
+          import androidx.compose.ui.unit.dp
+          import androidx.lifecycle.viewmodel.compose.viewModel
+          import androidx.lifecycle.compose.collectAsStateWithLifecycle
+          import com.lifemanager.app.viewmodel.AppViewModel
+          import java.text.SimpleDateFormat
+          import java.util.*
+          @OptIn(ExperimentalMaterial3Api::class)
+          @Composable
+          fun NotesScreen(vm: AppViewModel = viewModel()) {
+              val notes by vm.allNotes.collectAsStateWithLifecycle()
+              var showAdd by remember { mutableStateOf(false) }
+              var search by remember { mutableStateOf("") }
+              Scaffold(
+                  topBar = { TopAppBar(title = { Text("Notes", fontWeight = FontWeight.Bold) }) },
+                  floatingActionButton = { FloatingActionButton(onClick = { showAdd = true }) { Icon(Icons.Filled.Add, null) } }
+              ) { padding ->
+                  Column(Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
+                      OutlinedTextField(value=search, onValueChange={search=it}, modifier=Modifier.fillMaxWidth(), placeholder={Text("Search...")}, leadingIcon={Icon(Icons.Filled.Search,null)}, singleLine=true)
+                      Spacer(Modifier.height(8.dp))
+                      val filtered = if (search.isEmpty()) notes else notes.filter { it.title.contains(search,true) || it.content.contains(search,true) }
+                      if (filtered.isEmpty()) {
+                          Box(Modifier.fillMaxSize(), contentAlignment=Alignment.Center) { Text("No notes yet. Tap + to add one.", color=MaterialTheme.colorScheme.onSurfaceVariant) }
+                      } else {
+                          LazyColumn(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                              items(filtered) { note ->
+                                  Card(Modifier.fillMaxWidth()) {
+                                      Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement=Arrangement.SpaceBetween, verticalAlignment=Alignment.CenterVertically) {
+                                          Column(Modifier.weight(1f)) {
+                                              Text(note.title, fontWeight=FontWeight.Bold)
+                                              if (note.content.isNotEmpty()) Text(note.content, style=MaterialTheme.typography.bodySmall, maxLines=2)
+                                              Text(SimpleDateFormat("dd MMM yyyy",Locale.getDefault()).format(Date(note.updatedAt)), style=MaterialTheme.typography.labelSmall, color=MaterialTheme.colorScheme.onSurfaceVariant)
+                                          }
+                                          IconButton(onClick={vm.deleteNote(note)}) { Icon(Icons.Filled.Delete,null,tint=MaterialTheme.colorScheme.error) }
+                                      }
+                                  }
+                              }
+                          }
+                      }
                   }
               }
-              fun deleteExpense(expense: ExpenseEntity) = viewModelScope.launch { repository.deleteExpense(expense) }
-              fun insertIncome(title: String, amount: Double, source: String, notes: String = "") {
-                  viewModelScope.launch {
-                      repository.insertIncome(IncomeEntity(title = title, amount = amount, source = source, date = System.currentTimeMillis(), notes = notes))
-                  }
-              }
-              fun deleteIncome(income: IncomeEntity) = viewModelScope.launch { repository.deleteIncome(income) }
-              fun insertLoan(name: String, lenderBorrower: String, principal: Double, interestRate: Double, interestType: String, startDate: Long, dueDate: Long) {
-                  viewModelScope.launch {
-                      repository.insertLoan(LoanEntity(name = name, lenderBorrower = lenderBorrower, principal = principal, interestRate = interestRate, interestType = interestType, isCompound = false, startDate = startDate, dueDate = dueDate))
-                  }
-              }
-              fun deleteLoan(loan: LoanEntity) = viewModelScope.launch { repository.deleteLoan(loan) }
-              fun insertVehicle(name: String, regNumber: String, fuelType: String) {
-                  viewModelScope.launch {
-                      repository.insertVehicle(VehicleEntity(name = name, registrationNumber = regNumber, fuelType = fuelType))
-                  }
-              }
-              fun deleteVehicle(vehicle: VehicleEntity) = viewModelScope.launch { repository.deleteVehicle(vehicle) }
-              fun insertFuelEntry(vehicleId: Long, odometer: Double, quantity: Double, cost: Double, station: String = "") {
-                  viewModelScope.launch {
-                      repository.insertFuelEntry(FuelEntryEntity(vehicleId = vehicleId, date = System.currentTimeMillis(), odometer = odometer, quantity = quantity, cost = cost, station = station))
-                  }
-              }
-              fun deleteFuelEntry(entry: FuelEntryEntity) = viewModelScope.launch { repository.deleteFuelEntry(entry) }
-              fun insertShoppingList(name: String) {
-                  viewModelScope.launch {
-                      repository.insertShoppingList(ShoppingListEntity(name = name, createdAt = System.currentTimeMillis()))
-                  }
-              }
-              fun insertShoppingItem(listId: Long, name: String, quantity: String = "", price: Double = 0.0) {
-                  viewModelScope.launch {
-                      repository.insertShoppingItem(ShoppingItemEntity(listId = listId, name = name, quantity = quantity, estimatedPrice = price))
-                  }
-              }
-              fun toggleShoppingItem(item: ShoppingItemEntity) = viewModelScope.launch { repository.updateShoppingItem(item.copy(isCompleted = !item.isCompleted)) }
-              fun deleteShoppingItem(item: ShoppingItemEntity) = viewModelScope.launch { repository.deleteShoppingItem(item) }
-              fun insertAddress(address: String, city: String, state: String, country: String, postalCode: String, moveInDate: Long) {
-                  viewModelScope.launch {
-                      repository.insertAddress(AddressEntity(address = address, city = city, state = state, country = country, postalCode = postalCode, moveInDate = moveInDate))
-                  }
-              }
-              fun deleteAddress(address: AddressEntity) = viewModelScope.launch { repository.deleteAddress(address) }
-              fun insertReminder(title: String, description: String, dueDate: Long, category: String = "custom") {
-                  viewModelScope.launch {
-                      repository.insertReminder(ReminderEntity(title = title, description = description, dueDate = dueDate, category = category))
-                  }
-              }
-              fun deleteReminder(reminder: ReminderEntity) = viewModelScope.launch { repository.deleteReminder(reminder) }
-              fun insertNote(title: String, content: String, folder: String = "default") {
-                  viewModelScope.launch {
-                      val now = System.currentTimeMillis()
-                      repository.insertNote(NoteEntity(title = title, content = content, folder = folder, createdAt = now, updatedAt = now))
-                  }
-              }
-              fun deleteNote(note: NoteEntity) = viewModelScope.launch { repository.deleteNote(note) }
-              fun insertSavings(name: String, type: String, amount: Double, notes: String = "") {
-                  viewModelScope.launch {
-                      repository.insertSavings(SavingsEntity(name = name, type = type, amount = amount, date = System.currentTimeMillis(), notes = notes))
-                  }
-              }
-              fun deleteSavings(savings: SavingsEntity) = viewModelScope.launch { repository.deleteSavings(savings) }
-
-              fun getMonthStart(): Long {
-                  val cal = Calendar.getInstance()
-                  cal.set(Calendar.DAY_OF_MONTH, 1)
-                  cal.set(Calendar.HOUR_OF_DAY, 0)
-                  cal.set(Calendar.MINUTE, 0)
-                  cal.set(Calendar.SECOND, 0)
-                  return cal.timeInMillis
-              }
-              fun getMonthEnd(): Long {
-                  val cal = Calendar.getInstance()
-                  cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH))
-                  cal.set(Calendar.HOUR_OF_DAY, 23)
-                  cal.set(Calendar.MINUTE, 59)
-                  cal.set(Calendar.SECOND, 59)
-                  return cal.timeInMillis
+              if (showAdd) {
+                  var title by remember { mutableStateOf("") }
+                  var content by remember { mutableStateOf("") }
+                  AlertDialog(onDismissRequest={showAdd=false}, title={Text("New Note")},
+                      text={ Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                          OutlinedTextField(value=title,onValueChange={title=it},label={Text("Title")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          OutlinedTextField(value=content,onValueChange={content=it},label={Text("Content")},modifier=Modifier.fillMaxWidth().height(150.dp))
+                      }},
+                      confirmButton={ Button(onClick={ if(title.isNotEmpty()){vm.insertNote(title,content);showAdd=false} }) { Text("Save") } },
+                      dismissButton={ TextButton(onClick={showAdd=false}) { Text("Cancel") } }
+                  )
               }
           }
+          EOF
 
-          class AppViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
-              override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                  if (modelClass.isAssignableFrom(AppViewModel::class.java)) {
-                      @Suppress("UNCHECKED_CAST")
-                      return AppViewModel(application) as T
+          cat > app/src/main/java/com/lifemanager/app/ui/screens/FinanceScreen.kt << 'EOF'
+          package com.lifemanager.app.ui.screens
+          import androidx.compose.foundation.layout.*
+          import androidx.compose.foundation.lazy.LazyColumn
+          import androidx.compose.foundation.lazy.items
+          import androidx.compose.material.icons.Icons
+          import androidx.compose.material.icons.filled.*
+          import androidx.compose.material3.*
+          import androidx.compose.runtime.*
+          import androidx.compose.ui.Alignment
+          import androidx.compose.ui.Modifier
+          import androidx.compose.ui.text.font.FontWeight
+          import androidx.compose.ui.unit.dp
+          import androidx.lifecycle.viewmodel.compose.viewModel
+          import androidx.lifecycle.compose.collectAsStateWithLifecycle
+          import com.lifemanager.app.viewmodel.AppViewModel
+          import java.text.SimpleDateFormat
+          import java.util.*
+          @OptIn(ExperimentalMaterial3Api::class)
+          @Composable
+          fun FinanceScreen(vm: AppViewModel = viewModel()) {
+              var selectedTab by remember { mutableStateOf(0) }
+              val tabs = listOf("Expenses","Income","Loans","Savings")
+              Scaffold(topBar={ TopAppBar(title={Text("Finance",fontWeight=FontWeight.Bold)}) }) { padding ->
+                  Column(Modifier.fillMaxSize().padding(padding)) {
+                      ScrollableTabRow(selectedTabIndex=selectedTab) { tabs.forEachIndexed { i,t -> Tab(selected=selectedTab==i,onClick={selectedTab=i},text={Text(t)}) } }
+                      when(selectedTab) {
+                          0 -> ExpensesTab(vm)
+                          1 -> IncomeTab(vm)
+                          2 -> LoansTab(vm)
+                          3 -> SavingsTab(vm)
+                      }
                   }
-                  throw IllegalArgumentException("Unknown ViewModel class")
               }
           }
-          ENDOFFILE
+          @OptIn(ExperimentalMaterial3Api::class)
+          @Composable
+          fun ExpensesTab(vm: AppViewModel) {
+              val expenses by vm.allExpenses.collectAsStateWithLifecycle()
+              var showAdd by remember { mutableStateOf(false) }
+              val categories = listOf("Groceries","Fuel","Utilities","Rent","Entertainment","Medical","Shopping","Transport","Education","Personal","Other")
+              Box(Modifier.fillMaxSize()) {
+                  if (expenses.isEmpty()) {
+                      Box(Modifier.fillMaxSize(), contentAlignment=Alignment.Center) { Text("No expenses yet", color=MaterialTheme.colorScheme.onSurfaceVariant) }
+                  } else {
+                      LazyColumn(Modifier.fillMaxSize().padding(16.dp), verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                          item { Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp)) { Text("Total",style=MaterialTheme.typography.labelMedium); Text("${"%.2f".format(expenses.sumOf{it.amount})}",style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold) } } }
+                          items(expenses) { e ->
+                              Card(Modifier.fillMaxWidth()) {
+                                  Row(Modifier.fillMaxWidth().padding(16.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
+                                      Column(Modifier.weight(1f)) { Text(e.title,fontWeight=FontWeight.Medium); Text(e.category,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant) }
+                                      Text("${"%.2f".format(e.amount)}",fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.error)
+                                      IconButton(onClick={vm.deleteExpense(e)}) { Icon(Icons.Filled.Delete,null,tint=MaterialTheme.colorScheme.error) }
+                                  }
+                              }
+                          }
+                      }
+                  }
+                  FloatingActionButton(onClick={showAdd=true},modifier=Modifier.align(Alignment.BottomEnd).padding(16.dp)) { Icon(Icons.Filled.Add,null) }
+              }
+              if (showAdd) {
+                  var title by remember { mutableStateOf("") }
+                  var amount by remember { mutableStateOf("") }
+                  var category by remember { mutableStateOf(categories[0]) }
+                  var expanded by remember { mutableStateOf(false) }
+                  AlertDialog(onDismissRequest={showAdd=false},title={Text("Add Expense")},
+                      text={ Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                          OutlinedTextField(value=title,onValueChange={title=it},label={Text("Title")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          OutlinedTextField(value=amount,onValueChange={amount=it},label={Text("Amount")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          ExposedDropdownMenuBox(expanded=expanded,onExpandedChange={expanded=it}) {
+                              OutlinedTextField(value=category,onValueChange={},readOnly=true,label={Text("Category")},trailingIcon={ExposedDropdownMenuDefaults.TrailingIcon(expanded)},modifier=Modifier.menuAnchor().fillMaxWidth())
+                              ExposedDropdownMenu(expanded=expanded,onDismissRequest={expanded=false}) { categories.forEach { c -> DropdownMenuItem(text={Text(c)},onClick={category=c;expanded=false}) } }
+                          }
+                      }},
+                      confirmButton={ Button(onClick={ val a=amount.toDoubleOrNull(); if(title.isNotEmpty()&&a!=null){vm.insertExpense(title,a,category);showAdd=false} }) { Text("Save") } },
+                      dismissButton={ TextButton(onClick={showAdd=false}) { Text("Cancel") } }
+                  )
+              }
+          }
+          @OptIn(ExperimentalMaterial3Api::class)
+          @Composable
+          fun IncomeTab(vm: AppViewModel) {
+              val incomes by vm.allIncomes.collectAsStateWithLifecycle()
+              var showAdd by remember { mutableStateOf(false) }
+              val sources = listOf("Salary","Business","Interest","Side Job","Other")
+              Box(Modifier.fillMaxSize()) {
+                  if (incomes.isEmpty()) {
+                      Box(Modifier.fillMaxSize(), contentAlignment=Alignment.Center) { Text("No income yet", color=MaterialTheme.colorScheme.onSurfaceVariant) }
+                  } else {
+                      LazyColumn(Modifier.fillMaxSize().padding(16.dp), verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                          item { Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp)) { Text("Total",style=MaterialTheme.typography.labelMedium); Text("${"%.2f".format(incomes.sumOf{it.amount})}",style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold) } } }
+                          items(incomes) { i ->
+                              Card(Modifier.fillMaxWidth()) {
+                                  Row(Modifier.fillMaxWidth().padding(16.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
+                                      Column(Modifier.weight(1f)) { Text(i.title,fontWeight=FontWeight.Medium); Text(i.source,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant) }
+                                      Text("${"%.2f".format(i.amount)}",fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary)
+                                      IconButton(onClick={vm.deleteIncome(i)}) { Icon(Icons.Filled.Delete,null,tint=MaterialTheme.colorScheme.error) }
+                                  }
+                              }
+                          }
+                      }
+                  }
+                  FloatingActionButton(onClick={showAdd=true},modifier=Modifier.align(Alignment.BottomEnd).padding(16.dp)) { Icon(Icons.Filled.Add,null) }
+              }
+              if (showAdd) {
+                  var title by remember { mutableStateOf("") }
+                  var amount by remember { mutableStateOf("") }
+                  var source by remember { mutableStateOf(sources[0]) }
+                  var expanded by remember { mutableStateOf(false) }
+                  AlertDialog(onDismissRequest={showAdd=false},title={Text("Add Income")},
+                      text={ Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                          OutlinedTextField(value=title,onValueChange={title=it},label={Text("Title")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          OutlinedTextField(value=amount,onValueChange={amount=it},label={Text("Amount")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          ExposedDropdownMenuBox(expanded=expanded,onExpandedChange={expanded=it}) {
+                              OutlinedTextField(value=source,onValueChange={},readOnly=true,label={Text("Source")},trailingIcon={ExposedDropdownMenuDefaults.TrailingIcon(expanded)},modifier=Modifier.menuAnchor().fillMaxWidth())
+                              ExposedDropdownMenu(expanded=expanded,onDismissRequest={expanded=false}) { sources.forEach { s -> DropdownMenuItem(text={Text(s)},onClick={source=s;expanded=false}) } }
+                          }
+                      }},
+                      confirmButton={ Button(onClick={ val a=amount.toDoubleOrNull(); if(title.isNotEmpty()&&a!=null){vm.insertIncome(title,a,source);showAdd=false} }) { Text("Save") } },
+                      dismissButton={ TextButton(onClick={showAdd=false}) { Text("Cancel") } }
+                  )
+              }
+          }
+          @Composable
+          fun LoansTab(vm: AppViewModel) {
+              val loans by vm.allLoans.collectAsStateWithLifecycle()
+              var showAdd by remember { mutableStateOf(false) }
+              Box(Modifier.fillMaxSize()) {
+                  if (loans.isEmpty()) {
+                      Box(Modifier.fillMaxSize(), contentAlignment=Alignment.Center) { Text("No loans yet", color=MaterialTheme.colorScheme.onSurfaceVariant) }
+                  } else {
+                      LazyColumn(Modifier.fillMaxSize().padding(16.dp), verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                          items(loans) { l ->
+                              Card(Modifier.fillMaxWidth()) {
+                                  Row(Modifier.fillMaxWidth().padding(16.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
+                                      Column(Modifier.weight(1f)) { Text(l.name,fontWeight=FontWeight.Medium); Text(l.lenderBorrower,style=MaterialTheme.typography.bodySmall) }
+                                      Text("${"%.2f".format(l.principal)}",fontWeight=FontWeight.Bold)
+                                      IconButton(onClick={vm.deleteLoan(l)}) { Icon(Icons.Filled.Delete,null,tint=MaterialTheme.colorScheme.error) }
+                                  }
+                              }
+                          }
+                      }
+                  }
+                  FloatingActionButton(onClick={showAdd=true},modifier=Modifier.align(Alignment.BottomEnd).padding(16.dp)) { Icon(Icons.Filled.Add,null) }
+              }
+              if (showAdd) {
+                  var name by remember { mutableStateOf("") }
+                  var person by remember { mutableStateOf("") }
+                  var amount by remember { mutableStateOf("") }
+                  AlertDialog(onDismissRequest={showAdd=false},title={Text("Add Loan")},
+                      text={ Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                          OutlinedTextField(value=name,onValueChange={name=it},label={Text("Loan Name")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          OutlinedTextField(value=person,onValueChange={person=it},label={Text("Lender/Borrower")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          OutlinedTextField(value=amount,onValueChange={amount=it},label={Text("Amount")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                      }},
+                      confirmButton={ Button(onClick={ val a=amount.toDoubleOrNull(); if(name.isNotEmpty()&&a!=null){vm.insertLoan(name,person,a,0.0,"monthly",System.currentTimeMillis(),System.currentTimeMillis());showAdd=false} }) { Text("Save") } },
+                      dismissButton={ TextButton(onClick={showAdd=false}) { Text("Cancel") } }
+                  )
+              }
+          }
+          @Composable
+          fun SavingsTab(vm: AppViewModel) {
+              val savings by vm.allSavings.collectAsStateWithLifecycle()
+              val total by vm.totalSavings.collectAsStateWithLifecycle()
+              var showAdd by remember { mutableStateOf(false) }
+              val types = listOf("Bank","Cash","Investment","Asset","Other")
+              Box(Modifier.fillMaxSize()) {
+                  LazyColumn(Modifier.fillMaxSize().padding(16.dp), verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                      item { Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp)) { Text("Total Savings",style=MaterialTheme.typography.labelMedium); Text("${"%.2f".format(total?:0.0)}",style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold) } } }
+                      items(savings) { s ->
+                          Card(Modifier.fillMaxWidth()) {
+                              Row(Modifier.fillMaxWidth().padding(16.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
+                                  Column(Modifier.weight(1f)) { Text(s.name,fontWeight=FontWeight.Medium); Text(s.type,style=MaterialTheme.typography.bodySmall) }
+                                  Text("${"%.2f".format(s.amount)}",fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary)
+                                  IconButton(onClick={vm.deleteSavings(s)}) { Icon(Icons.Filled.Delete,null,tint=MaterialTheme.colorScheme.error) }
+                              }
+                          }
+                      }
+                  }
+                  FloatingActionButton(onClick={showAdd=true},modifier=Modifier.align(Alignment.BottomEnd).padding(16.dp)) { Icon(Icons.Filled.Add,null) }
+              }
+              if (showAdd) {
+                  var name by remember { mutableStateOf("") }
+                  var amount by remember { mutableStateOf("") }
+                  var type by remember { mutableStateOf(types[0]) }
+                  var expanded by remember { mutableStateOf(false) }
+                  AlertDialog(onDismissRequest={showAdd=false},title={Text("Add Savings")},
+                      text={ Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                          OutlinedTextField(value=name,onValueChange={name=it},label={Text("Name")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          OutlinedTextField(value=amount,onValueChange={amount=it},label={Text("Amount")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          ExposedDropdownMenuBox(expanded=expanded,onExpandedChange={expanded=it}) {
+                              OutlinedTextField(value=type,onValueChange={},readOnly=true,label={Text("Type")},trailingIcon={ExposedDropdownMenuDefaults.TrailingIcon(expanded)},modifier=Modifier.menuAnchor().fillMaxWidth())
+                              ExposedDropdownMenu(expanded=expanded,onDismissRequest={expanded=false}) { types.forEach { t -> DropdownMenuItem(text={Text(t)},onClick={type=t;expanded=false}) } }
+                          }
+                      }},
+                      confirmButton={ Button(onClick={ val a=amount.toDoubleOrNull(); if(name.isNotEmpty()&&a!=null){vm.insertSavings(name,type,a);showAdd=false} }) { Text("Save") } },
+                      dismissButton={ TextButton(onClick={showAdd=false}) { Text("Cancel") } }
+                  )
+              }
+          }
+          EOF
 
-      - name: Commit files
+          cat > app/src/main/java/com/lifemanager/app/ui/screens/DashboardScreen.kt << 'EOF'
+          package com.lifemanager.app.ui.screens
+          import androidx.compose.foundation.layout.*
+          import androidx.compose.foundation.lazy.LazyColumn
+          import androidx.compose.foundation.lazy.items
+          import androidx.compose.material.icons.Icons
+          import androidx.compose.material.icons.filled.*
+          import androidx.compose.material3.*
+          import androidx.compose.runtime.*
+          import androidx.compose.ui.Alignment
+          import androidx.compose.ui.Modifier
+          import androidx.compose.ui.text.font.FontWeight
+          import androidx.compose.ui.unit.dp
+          import androidx.lifecycle.viewmodel.compose.viewModel
+          import androidx.lifecycle.compose.collectAsStateWithLifecycle
+          import com.lifemanager.app.viewmodel.AppViewModel
+          import java.text.SimpleDateFormat
+          import java.util.*
+          @OptIn(ExperimentalMaterial3Api::class)
+          @Composable
+          fun DashboardScreen(vm: AppViewModel = viewModel()) {
+              val expenses by vm.allExpenses.collectAsStateWithLifecycle()
+              val incomes by vm.allIncomes.collectAsStateWithLifecycle()
+              val loans by vm.allLoans.collectAsStateWithLifecycle()
+              val savings by vm.totalSavings.collectAsStateWithLifecycle()
+              val reminders by vm.allReminders.collectAsStateWithLifecycle()
+              var showAddExpense by remember { mutableStateOf(false) }
+              var showAddIncome by remember { mutableStateOf(false) }
+              var showAddNote by remember { mutableStateOf(false) }
+              val totalExpenses = expenses.sumOf { it.amount }
+              val totalIncome = incomes.sumOf { it.amount }
+              val totalLoans = loans.sumOf { it.principal }
+              Scaffold(topBar={ TopAppBar(title={Text("Life Manager",fontWeight=FontWeight.Bold)}, actions={IconButton(onClick={}){Icon(Icons.Filled.Settings,null)}}) }) { padding ->
+                  LazyColumn(Modifier.fillMaxSize().padding(padding).padding(16.dp), verticalArrangement=Arrangement.spacedBy(16.dp)) {
+                      item {
+                          Text("Overview",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold)
+                          Spacer(Modifier.height(8.dp))
+                          Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                              SummaryCard(Modifier.weight(1f),"Income","${"%.2f".format(totalIncome)}",Icons.Filled.TrendingUp,MaterialTheme.colorScheme.primary)
+                              SummaryCard(Modifier.weight(1f),"Expenses","${"%.2f".format(totalExpenses)}",Icons.Filled.TrendingDown,MaterialTheme.colorScheme.error)
+                          }
+                          Spacer(Modifier.height(8.dp))
+                          Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                              SummaryCard(Modifier.weight(1f),"Savings","${"%.2f".format(savings?:0.0)}",Icons.Filled.Savings,MaterialTheme.colorScheme.tertiary)
+                              SummaryCard(Modifier.weight(1f),"Loans","${"%.2f".format(totalLoans)}",Icons.Filled.AccountBalance,MaterialTheme.colorScheme.secondary)
+                          }
+                      }
+                      item {
+                          Card(Modifier.fillMaxWidth()) {
+                              Column(Modifier.padding(16.dp)) {
+                                  Text("Quick Add",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold)
+                                  Spacer(Modifier.height(8.dp))
+                                  Row(horizontalArrangement=Arrangement.spacedBy(8.dp),modifier=Modifier.fillMaxWidth()) {
+                                      FilledTonalButton(onClick={showAddExpense=true},modifier=Modifier.weight(1f),contentPadding=PaddingValues(4.dp)) { Column(horizontalAlignment=Alignment.CenterHorizontally) { Icon(Icons.Filled.Remove,null,Modifier.size(20.dp)); Text("Expense",style=MaterialTheme.typography.labelSmall) } }
+                                      FilledTonalButton(onClick={showAddIncome=true},modifier=Modifier.weight(1f),contentPadding=PaddingValues(4.dp)) { Column(horizontalAlignment=Alignment.CenterHorizontally) { Icon(Icons.Filled.Add,null,Modifier.size(20.dp)); Text("Income",style=MaterialTheme.typography.labelSmall) } }
+                                      FilledTonalButton(onClick={},modifier=Modifier.weight(1f),contentPadding=PaddingValues(4.dp)) { Column(horizontalAlignment=Alignment.CenterHorizontally) { Icon(Icons.Filled.LocalGasStation,null,Modifier.size(20.dp)); Text("Fuel",style=MaterialTheme.typography.labelSmall) } }
+                                      FilledTonalButton(onClick={showAddNote=true},modifier=Modifier.weight(1f),contentPadding=PaddingValues(4.dp)) { Column(horizontalAlignment=Alignment.CenterHorizontally) { Icon(Icons.Filled.Note,null,Modifier.size(20.dp)); Text("Note",style=MaterialTheme.typography.labelSmall) } }
+                                  }
+                              }
+                          }
+                      }
+                      item {
+                          Card(Modifier.fillMaxWidth()) {
+                              Column(Modifier.padding(16.dp)) {
+                                  Text("Recent Transactions",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold)
+                                  Spacer(Modifier.height(8.dp))
+                                  val recent = (expenses.map { Pair("expense",it.title) to it.amount } + incomes.map { Pair("income",it.title) to it.amount }).take(5)
+                                  if (recent.isEmpty()) { Text("No transactions yet",color=MaterialTheme.colorScheme.onSurfaceVariant) }
+                                  else { recent.forEach { (meta,amount) -> Row(Modifier.fillMaxWidth().padding(vertical=4.dp),horizontalArrangement=Arrangement.SpaceBetween) { Text(meta.second); Text("${"%.2f".format(amount)}",color=if(meta.first=="expense") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary) } } }
+                              }
+                          }
+                      }
+                      item {
+                          Card(Modifier.fillMaxWidth()) {
+                              Column(Modifier.padding(16.dp)) {
+                                  Text("Upcoming Reminders",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold)
+                                  Spacer(Modifier.height(8.dp))
+                                  val upcoming = reminders.filter { it.dueDate > System.currentTimeMillis() }.take(3)
+                                  if (upcoming.isEmpty()) { Text("No reminders set",color=MaterialTheme.colorScheme.onSurfaceVariant) }
+                                  else { upcoming.forEach { r -> Row(Modifier.fillMaxWidth().padding(vertical=4.dp),horizontalArrangement=Arrangement.SpaceBetween) { Text(r.title); Text(SimpleDateFormat("dd MMM",Locale.getDefault()).format(Date(r.dueDate)),style=MaterialTheme.typography.bodySmall) } } }
+                              }
+                          }
+                      }
+                  }
+              }
+              if (showAddExpense) {
+                  var title by remember { mutableStateOf("") }
+                  var amount by remember { mutableStateOf("") }
+                  AlertDialog(onDismissRequest={showAddExpense=false},title={Text("Add Expense")},
+                      text={ Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                          OutlinedTextField(value=title,onValueChange={title=it},label={Text("Title")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          OutlinedTextField(value=amount,onValueChange={amount=it},label={Text("Amount")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                      }},
+                      confirmButton={ Button(onClick={ val a=amount.toDoubleOrNull(); if(title.isNotEmpty()&&a!=null){vm.insertExpense(title,a,"Other");showAddExpense=false} }) { Text("Save") } },
+                      dismissButton={ TextButton(onClick={showAddExpense=false}) { Text("Cancel") } }
+                  )
+              }
+              if (showAddIncome) {
+                  var title by remember { mutableStateOf("") }
+                  var amount by remember { mutableStateOf("") }
+                  AlertDialog(onDismissRequest={showAddIncome=false},title={Text("Add Income")},
+                      text={ Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                          OutlinedTextField(value=title,onValueChange={title=it},label={Text("Title")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          OutlinedTextField(value=amount,onValueChange={amount=it},label={Text("Amount")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                      }},
+                      confirmButton={ Button(onClick={ val a=amount.toDoubleOrNull(); if(title.isNotEmpty()&&a!=null){vm.insertIncome(title,a,"Other");showAddIncome=false} }) { Text("Save") } },
+                      dismissButton={ TextButton(onClick={showAddIncome=false}) { Text("Cancel") } }
+                  )
+              }
+              if (showAddNote) {
+                  var title by remember { mutableStateOf("") }
+                  var content by remember { mutableStateOf("") }
+                  AlertDialog(onDismissRequest={showAddNote=false},title={Text("New Note")},
+                      text={ Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                          OutlinedTextField(value=title,onValueChange={title=it},label={Text("Title")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          OutlinedTextField(value=content,onValueChange={content=it},label={Text("Content")},modifier=Modifier.fillMaxWidth().height(120.dp))
+                      }},
+                      confirmButton={ Button(onClick={ if(title.isNotEmpty()){vm.insertNote(title,content);showAddNote=false} }) { Text("Save") } },
+                      dismissButton={ TextButton(onClick={showAddNote=false}) { Text("Cancel") } }
+                  )
+              }
+          }
+          @Composable
+          fun SummaryCard(modifier: Modifier, title: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector, color: androidx.compose.ui.graphics.Color) {
+              Card(modifier=modifier) { Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) { Icon(icon,null,tint=color); Text(title,style=MaterialTheme.typography.labelMedium); Text(value,style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold) } }
+          }
+          EOF
+
+          cat > app/src/main/java/com/lifemanager/app/ui/screens/VehicleScreen.kt << 'EOF'
+          package com.lifemanager.app.ui.screens
+          import androidx.compose.foundation.layout.*
+          import androidx.compose.foundation.lazy.LazyColumn
+          import androidx.compose.foundation.lazy.items
+          import androidx.compose.material.icons.Icons
+          import androidx.compose.material.icons.filled.*
+          import androidx.compose.material3.*
+          import androidx.compose.runtime.*
+          import androidx.compose.ui.Alignment
+          import androidx.compose.ui.Modifier
+          import androidx.compose.ui.text.font.FontWeight
+          import androidx.compose.ui.unit.dp
+          import androidx.lifecycle.viewmodel.compose.viewModel
+          import androidx.lifecycle.compose.collectAsStateWithLifecycle
+          import com.lifemanager.app.viewmodel.AppViewModel
+          @OptIn(ExperimentalMaterial3Api::class)
+          @Composable
+          fun VehicleScreen(vm: AppViewModel = viewModel()) {
+              val vehicles by vm.allVehicles.collectAsStateWithLifecycle()
+              val fuelEntries by vm.allFuelEntries.collectAsStateWithLifecycle()
+              var selectedTab by remember { mutableStateOf(0) }
+              var showAddVehicle by remember { mutableStateOf(false) }
+              var showAddFuel by remember { mutableStateOf(false) }
+              Scaffold(topBar={ TopAppBar(title={Text("Vehicle",fontWeight=FontWeight.Bold)}) }) { padding ->
+                  Column(Modifier.fillMaxSize().padding(padding)) {
+                      TabRow(selectedTabIndex=selectedTab) {
+                          Tab(selected=selectedTab==0,onClick={selectedTab=0},text={Text("Vehicles")})
+                          Tab(selected=selectedTab==1,onClick={selectedTab=1},text={Text("Fuel Log")})
+                      }
+                      Box(Modifier.fillMaxSize()) {
+                          when(selectedTab) {
+                              0 -> {
+                                  if (vehicles.isEmpty()) {
+                                      Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center) { Text("No vehicles yet",color=MaterialTheme.colorScheme.onSurfaceVariant) }
+                                  } else {
+                                      LazyColumn(Modifier.fillMaxSize().padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                                          items(vehicles) { v ->
+                                              Card(Modifier.fillMaxWidth()) {
+                                                  Row(Modifier.fillMaxWidth().padding(16.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
+                                                      Column(Modifier.weight(1f)) { Text(v.name,fontWeight=FontWeight.Medium); Text("${v.registrationNumber} • ${v.fuelType}",style=MaterialTheme.typography.bodySmall) }
+                                                      IconButton(onClick={vm.deleteVehicle(v)}) { Icon(Icons.Filled.Delete,null,tint=MaterialTheme.colorScheme.error) }
+                                                  }
+                                              }
+                                          }
+                                      }
+                                  }
+                                  FloatingActionButton(onClick={showAddVehicle=true},modifier=Modifier.align(Alignment.BottomEnd).padding(16.dp)) { Icon(Icons.Filled.Add,null) }
+                              }
+                              1 -> {
+                                  if (fuelEntries.isEmpty()) {
+                                      Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center) { Text("No fuel entries yet",color=MaterialTheme.colorScheme.onSurfaceVariant) }
+                                  } else {
+                                      LazyColumn(Modifier.fillMaxSize().padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                                          item { Card(Modifier.fillMaxWidth()) { Row(Modifier.fillMaxWidth().padding(16.dp),horizontalArrangement=Arrangement.SpaceBetween) { Column { Text("Total Fuel",style=MaterialTheme.typography.labelSmall); Text("${"%.1f".format(fuelEntries.sumOf{it.quantity})} L",fontWeight=FontWeight.Bold) }; Column { Text("Total Cost",style=MaterialTheme.typography.labelSmall); Text("${"%.2f".format(fuelEntries.sumOf{it.cost})}",fontWeight=FontWeight.Bold) } } } }
+                                          items(fuelEntries) { f ->
+                                              Card(Modifier.fillMaxWidth()) {
+                                                  Row(Modifier.fillMaxWidth().padding(16.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
+                                                      Column(Modifier.weight(1f)) { Text("${f.quantity}L @ ${f.station.ifEmpty{"Unknown station"}}",fontWeight=FontWeight.Medium); Text("Odometer: ${f.odometer}km",style=MaterialTheme.typography.bodySmall) }
+                                                      Text("${"%.2f".format(f.cost)}",fontWeight=FontWeight.Bold)
+                                                      IconButton(onClick={vm.deleteFuelEntry(f)}) { Icon(Icons.Filled.Delete,null,tint=MaterialTheme.colorScheme.error) }
+                                                  }
+                                              }
+                                          }
+                                      }
+                                  }
+                                  FloatingActionButton(onClick={showAddFuel=true},modifier=Modifier.align(Alignment.BottomEnd).padding(16.dp)) { Icon(Icons.Filled.Add,null) }
+                              }
+                          }
+                      }
+                  }
+              }
+              if (showAddVehicle) {
+                  var name by remember { mutableStateOf("") }
+                  var reg by remember { mutableStateOf("") }
+                  var fuel by remember { mutableStateOf("Petrol") }
+                  AlertDialog(onDismissRequest={showAddVehicle=false},title={Text("Add Vehicle")},
+                      text={ Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                          OutlinedTextField(value=name,onValueChange={name=it},label={Text("Vehicle Name")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          OutlinedTextField(value=reg,onValueChange={reg=it},label={Text("Registration Number")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          OutlinedTextField(value=fuel,onValueChange={fuel=it},label={Text("Fuel Type")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                      }},
+                      confirmButton={ Button(onClick={ if(name.isNotEmpty()){vm.insertVehicle(name,reg,fuel);showAddVehicle=false} }) { Text("Save") } },
+                      dismissButton={ TextButton(onClick={showAddVehicle=false}) { Text("Cancel") } }
+                  )
+              }
+              if (showAddFuel && vehicles.isNotEmpty()) {
+                  var odometer by remember { mutableStateOf("") }
+                  var quantity by remember { mutableStateOf("") }
+                  var cost by remember { mutableStateOf("") }
+                  var station by remember { mutableStateOf("") }
+                  AlertDialog(onDismissRequest={showAddFuel=false},title={Text("Add Fuel Entry")},
+                      text={ Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                          OutlinedTextField(value=odometer,onValueChange={odometer=it},label={Text("Odometer (km)")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          OutlinedTextField(value=quantity,onValueChange={quantity=it},label={Text("Quantity (L)")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          OutlinedTextField(value=cost,onValueChange={cost=it},label={Text("Cost")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                          OutlinedTextField(value=station,onValueChange={station=it},label={Text("Station (optional)")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+                      }},
+                      confirmButton={ Button(onClick={ val o=odometer.toDoubleOrNull();val q=quantity.toDoubleOrNull();val c=cost.toDoubleOrNull(); if(o!=null&&q!=null&&c!=null){vm.insertFuelEntry(vehicles[0].id,o,q,c,station);showAddFuel=false} }) { Text("Save") } },
+                      dismissButton={ TextButton(onClick={showAddFuel=false}) { Text("Cancel") } }
+                  )
+              }
+          }
+          EOF
+
+      - name: Update AndroidManifest
+        run: |
+          cat > app/src/main/AndroidManifest.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+              <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+              <uses-permission android:name="android.permission.VIBRATE" />
+              <application android:name=".LifeManagerApp" android:allowBackup="true" android:label="Life Manager" android:supportsRtl="true" android:theme="@style/Theme.LifeManager">
+                  <activity android:name=".MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
+                      <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+                  </activity>
+                  <receiver android:name=".reminder.ReminderReceiver" android:exported="false"/>
+                  <receiver android:name=".reminder.BootReceiver" android:exported="true"><intent-filter><action android:name="android.intent.action.BOOT_COMPLETED"/></intent-filter></receiver>
+              </application>
+          </manifest>
+          EOF
+
+      - name: Commit and push
         run: |
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
           git add -A
-          git commit -m "Add repository and viewmodel files" || echo "No changes"
+          git commit -m "Add fully functional screens with working buttons" || echo "No changes"
           git push
