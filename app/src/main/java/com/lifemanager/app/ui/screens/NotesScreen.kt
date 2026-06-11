@@ -11,124 +11,60 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.lifemanager.app.viewmodel.AppViewModel
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotesScreen() {
-    var searchQuery by remember { mutableStateOf("") }
-    var showAddDialog by remember { mutableStateOf(false) }
+fun NotesScreen(vm: AppViewModel = viewModel()) {
+    val notes by vm.allNotes.collectAsStateWithLifecycle()
+    var showAdd by remember { mutableStateOf(false) }
+    var search by remember { mutableStateOf("") }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Notes", fontWeight = FontWeight.Bold) },
-                actions = {
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Filled.Search, contentDescription = "Search")
-                    }
-                    IconButton(onClick = { showAddDialog = true }) {
-                        Icon(Icons.Filled.Add, contentDescription = "Add")
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Filled.Add, contentDescription = "New Note")
-            }
-        }
+        topBar = { TopAppBar(title = { Text("Notes", fontWeight = FontWeight.Bold) }) },
+        floatingActionButton = { FloatingActionButton(onClick = { showAdd = true }) { Icon(Icons.Filled.Add, null) } }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-        ) {
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Search notes...") },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                item {
-                    EmptyNotesPlaceholder()
+        Column(Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
+            OutlinedTextField(value = search, onValueChange = { search = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Search notes...") }, leadingIcon = { Icon(Icons.Filled.Search, null) }, singleLine = true)
+            Spacer(Modifier.height(8.dp))
+            val filtered = if (search.isEmpty()) notes else notes.filter { it.title.contains(search, true) || it.content.contains(search, true) }
+            if (filtered.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No notes yet. Tap + to add one.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(filtered) { note ->
+                        Card(Modifier.fillMaxWidth()) {
+                            Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(note.title, fontWeight = FontWeight.Bold)
+                                    if (note.content.isNotEmpty()) Text(note.content, style = MaterialTheme.typography.bodySmall, maxLines = 2)
+                                    Text(SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(note.updatedAt)), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                IconButton(onClick = { vm.deleteNote(note) }) { Icon(Icons.Filled.Delete, null, tint = MaterialTheme.colorScheme.error) }
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 
-    if (showAddDialog) {
-        AddNoteDialog(
-            onDismiss = { showAddDialog = false },
-            onSave = { showAddDialog = false }
+    if (showAdd) {
+        var title by remember { mutableStateOf("") }
+        var content by remember { mutableStateOf("") }
+        AlertDialog(onDismissRequest = { showAdd = false }, title = { Text("New Note") },
+            text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Title") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                OutlinedTextField(value = content, onValueChange = { content = it }, label = { Text("Content") }, modifier = Modifier.fillMaxWidth().height(150.dp))
+            }},
+            confirmButton = { Button(onClick = { if (title.isNotEmpty()) { vm.insertNote(title, content); showAdd = false } }) { Text("Save") } },
+            dismissButton = { TextButton(onClick = { showAdd = false }) { Text("Cancel") } }
         )
     }
-}
-
-@Composable
-fun EmptyNotesPlaceholder() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Icon(
-            Icons.Filled.Note,
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            "No notes yet",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            "Tap + to create your first note",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AddNoteDialog(onDismiss: () -> Unit, onSave: () -> Unit) {
-    var title by remember { mutableStateOf("") }
-    var content by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("New Note") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Title") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = content,
-                    onValueChange = { content = it },
-                    label = { Text("Content") },
-                    modifier = Modifier.fillMaxWidth().height(150.dp),
-                    maxLines = 6
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = onSave) { Text("Save") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        }
-    )
 }
