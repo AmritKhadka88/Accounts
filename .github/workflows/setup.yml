@@ -1,0 +1,246 @@
+name: Setup Project Files
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create all source files
+        run: |
+          mkdir -p app/src/main/java/com/lifemanager/app/data/repository
+          mkdir -p app/src/main/java/com/lifemanager/app/viewmodel
+          mkdir -p app/src/main/java/com/lifemanager/app/ui/screens
+
+          cat > app/src/main/java/com/lifemanager/app/LifeManagerApp.kt << 'ENDOFFILE'
+          package com.lifemanager.app
+
+          import android.app.Application
+          import com.lifemanager.app.data.database.AppDatabase
+          import com.lifemanager.app.data.repository.AppRepository
+
+          class LifeManagerApp : Application() {
+              val database by lazy { AppDatabase.getDatabase(this) }
+              val repository by lazy {
+                  AppRepository(
+                      database.expenseDao(),
+                      database.incomeDao(),
+                      database.loanDao(),
+                      database.vehicleDao(),
+                      database.fuelDao(),
+                      database.shoppingDao(),
+                      database.addressDao(),
+                      database.reminderDao(),
+                      database.noteDao(),
+                      database.documentDao(),
+                      database.savingsDao()
+                  )
+              }
+          }
+          ENDOFFILE
+
+          cat > app/src/main/java/com/lifemanager/app/data/repository/AppRepository.kt << 'ENDOFFILE'
+          package com.lifemanager.app.data.repository
+
+          import com.lifemanager.app.data.dao.*
+          import com.lifemanager.app.data.entities.*
+
+          class AppRepository(
+              private val expenseDao: ExpenseDao,
+              private val incomeDao: IncomeDao,
+              private val loanDao: LoanDao,
+              private val vehicleDao: VehicleDao,
+              private val fuelDao: FuelDao,
+              private val shoppingDao: ShoppingDao,
+              private val addressDao: AddressDao,
+              private val reminderDao: ReminderDao,
+              private val noteDao: NoteDao,
+              private val documentDao: DocumentDao,
+              private val savingsDao: SavingsDao
+          ) {
+              fun getAllExpenses() = expenseDao.getAllExpenses()
+              fun getTotalExpenses(start: Long, end: Long) = expenseDao.getTotalExpenses(start, end)
+              suspend fun insertExpense(expense: ExpenseEntity) = expenseDao.insertExpense(expense)
+              suspend fun updateExpense(expense: ExpenseEntity) = expenseDao.updateExpense(expense)
+              suspend fun deleteExpense(expense: ExpenseEntity) = expenseDao.deleteExpense(expense)
+              fun getAllIncomes() = incomeDao.getAllIncomes()
+              fun getTotalIncome(start: Long, end: Long) = incomeDao.getTotalIncome(start, end)
+              suspend fun insertIncome(income: IncomeEntity) = incomeDao.insertIncome(income)
+              suspend fun deleteIncome(income: IncomeEntity) = incomeDao.deleteIncome(income)
+              fun getAllLoans() = loanDao.getAllLoans()
+              suspend fun insertLoan(loan: LoanEntity) = loanDao.insertLoan(loan)
+              suspend fun deleteLoan(loan: LoanEntity) = loanDao.deleteLoan(loan)
+              suspend fun insertPayment(payment: LoanPaymentEntity) = loanDao.insertPayment(payment)
+              fun getAllVehicles() = vehicleDao.getAllVehicles()
+              suspend fun insertVehicle(vehicle: VehicleEntity) = vehicleDao.insertVehicle(vehicle)
+              suspend fun deleteVehicle(vehicle: VehicleEntity) = vehicleDao.deleteVehicle(vehicle)
+              fun getAllFuelEntries() = fuelDao.getAllFuelEntries()
+              fun getFuelEntriesForVehicle(vehicleId: Long) = fuelDao.getFuelEntriesForVehicle(vehicleId)
+              suspend fun insertFuelEntry(entry: FuelEntryEntity) = fuelDao.insertFuelEntry(entry)
+              suspend fun deleteFuelEntry(entry: FuelEntryEntity) = fuelDao.deleteFuelEntry(entry)
+              fun getAllShoppingLists() = shoppingDao.getAllLists()
+              fun getItemsForList(listId: Long) = shoppingDao.getItemsForList(listId)
+              suspend fun insertShoppingList(list: ShoppingListEntity) = shoppingDao.insertList(list)
+              suspend fun insertShoppingItem(item: ShoppingItemEntity) = shoppingDao.insertItem(item)
+              suspend fun updateShoppingItem(item: ShoppingItemEntity) = shoppingDao.updateItem(item)
+              suspend fun deleteShoppingItem(item: ShoppingItemEntity) = shoppingDao.deleteItem(item)
+              fun getAllAddresses() = addressDao.getAllAddresses()
+              suspend fun insertAddress(address: AddressEntity) = addressDao.insertAddress(address)
+              suspend fun deleteAddress(address: AddressEntity) = addressDao.deleteAddress(address)
+              fun getAllReminders() = reminderDao.getAllReminders()
+              fun getActiveReminders() = reminderDao.getActiveReminders()
+              suspend fun insertReminder(reminder: ReminderEntity) = reminderDao.insertReminder(reminder)
+              suspend fun updateReminder(reminder: ReminderEntity) = reminderDao.updateReminder(reminder)
+              suspend fun deleteReminder(reminder: ReminderEntity) = reminderDao.deleteReminder(reminder)
+              fun getAllNotes() = noteDao.getAllNotes()
+              fun searchNotes(query: String) = noteDao.searchNotes(query)
+              suspend fun insertNote(note: NoteEntity) = noteDao.insertNote(note)
+              suspend fun updateNote(note: NoteEntity) = noteDao.updateNote(note)
+              suspend fun deleteNote(note: NoteEntity) = noteDao.deleteNote(note)
+              fun getAllDocuments() = documentDao.getAllDocuments()
+              suspend fun insertDocument(document: DocumentEntity) = documentDao.insertDocument(document)
+              suspend fun deleteDocument(document: DocumentEntity) = documentDao.deleteDocument(document)
+              fun getAllSavings() = savingsDao.getAllSavings()
+              fun getTotalSavings() = savingsDao.getTotalSavings()
+              suspend fun insertSavings(savings: SavingsEntity) = savingsDao.insertSavings(savings)
+              suspend fun deleteSavings(savings: SavingsEntity) = savingsDao.deleteSavings(savings)
+          }
+          ENDOFFILE
+
+          cat > app/src/main/java/com/lifemanager/app/viewmodel/AppViewModel.kt << 'ENDOFFILE'
+          package com.lifemanager.app.viewmodel
+
+          import android.app.Application
+          import androidx.lifecycle.*
+          import com.lifemanager.app.LifeManagerApp
+          import com.lifemanager.app.data.entities.*
+          import kotlinx.coroutines.flow.SharingStarted
+          import kotlinx.coroutines.flow.stateIn
+          import kotlinx.coroutines.launch
+          import java.util.Calendar
+
+          class AppViewModel(application: Application) : AndroidViewModel(application) {
+              private val repository = (application as LifeManagerApp).repository
+
+              val allExpenses = repository.getAllExpenses().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+              val allIncomes = repository.getAllIncomes().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+              val allLoans = repository.getAllLoans().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+              val allVehicles = repository.getAllVehicles().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+              val allFuelEntries = repository.getAllFuelEntries().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+              val allShoppingLists = repository.getAllShoppingLists().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+              val allAddresses = repository.getAllAddresses().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+              val allReminders = repository.getAllReminders().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+              val allNotes = repository.getAllNotes().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+              val allDocuments = repository.getAllDocuments().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+              val allSavings = repository.getAllSavings().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+              val totalSavings = repository.getTotalSavings().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+
+              fun insertExpense(title: String, amount: Double, category: String, notes: String = "") {
+                  viewModelScope.launch {
+                      repository.insertExpense(ExpenseEntity(title = title, amount = amount, category = category, date = System.currentTimeMillis(), notes = notes))
+                  }
+              }
+              fun deleteExpense(expense: ExpenseEntity) = viewModelScope.launch { repository.deleteExpense(expense) }
+              fun insertIncome(title: String, amount: Double, source: String, notes: String = "") {
+                  viewModelScope.launch {
+                      repository.insertIncome(IncomeEntity(title = title, amount = amount, source = source, date = System.currentTimeMillis(), notes = notes))
+                  }
+              }
+              fun deleteIncome(income: IncomeEntity) = viewModelScope.launch { repository.deleteIncome(income) }
+              fun insertLoan(name: String, lenderBorrower: String, principal: Double, interestRate: Double, interestType: String, startDate: Long, dueDate: Long) {
+                  viewModelScope.launch {
+                      repository.insertLoan(LoanEntity(name = name, lenderBorrower = lenderBorrower, principal = principal, interestRate = interestRate, interestType = interestType, isCompound = false, startDate = startDate, dueDate = dueDate))
+                  }
+              }
+              fun deleteLoan(loan: LoanEntity) = viewModelScope.launch { repository.deleteLoan(loan) }
+              fun insertVehicle(name: String, regNumber: String, fuelType: String) {
+                  viewModelScope.launch {
+                      repository.insertVehicle(VehicleEntity(name = name, registrationNumber = regNumber, fuelType = fuelType))
+                  }
+              }
+              fun deleteVehicle(vehicle: VehicleEntity) = viewModelScope.launch { repository.deleteVehicle(vehicle) }
+              fun insertFuelEntry(vehicleId: Long, odometer: Double, quantity: Double, cost: Double, station: String = "") {
+                  viewModelScope.launch {
+                      repository.insertFuelEntry(FuelEntryEntity(vehicleId = vehicleId, date = System.currentTimeMillis(), odometer = odometer, quantity = quantity, cost = cost, station = station))
+                  }
+              }
+              fun deleteFuelEntry(entry: FuelEntryEntity) = viewModelScope.launch { repository.deleteFuelEntry(entry) }
+              fun insertShoppingList(name: String) {
+                  viewModelScope.launch {
+                      repository.insertShoppingList(ShoppingListEntity(name = name, createdAt = System.currentTimeMillis()))
+                  }
+              }
+              fun insertShoppingItem(listId: Long, name: String, quantity: String = "", price: Double = 0.0) {
+                  viewModelScope.launch {
+                      repository.insertShoppingItem(ShoppingItemEntity(listId = listId, name = name, quantity = quantity, estimatedPrice = price))
+                  }
+              }
+              fun toggleShoppingItem(item: ShoppingItemEntity) = viewModelScope.launch { repository.updateShoppingItem(item.copy(isCompleted = !item.isCompleted)) }
+              fun deleteShoppingItem(item: ShoppingItemEntity) = viewModelScope.launch { repository.deleteShoppingItem(item) }
+              fun insertAddress(address: String, city: String, state: String, country: String, postalCode: String, moveInDate: Long) {
+                  viewModelScope.launch {
+                      repository.insertAddress(AddressEntity(address = address, city = city, state = state, country = country, postalCode = postalCode, moveInDate = moveInDate))
+                  }
+              }
+              fun deleteAddress(address: AddressEntity) = viewModelScope.launch { repository.deleteAddress(address) }
+              fun insertReminder(title: String, description: String, dueDate: Long, category: String = "custom") {
+                  viewModelScope.launch {
+                      repository.insertReminder(ReminderEntity(title = title, description = description, dueDate = dueDate, category = category))
+                  }
+              }
+              fun deleteReminder(reminder: ReminderEntity) = viewModelScope.launch { repository.deleteReminder(reminder) }
+              fun insertNote(title: String, content: String, folder: String = "default") {
+                  viewModelScope.launch {
+                      val now = System.currentTimeMillis()
+                      repository.insertNote(NoteEntity(title = title, content = content, folder = folder, createdAt = now, updatedAt = now))
+                  }
+              }
+              fun deleteNote(note: NoteEntity) = viewModelScope.launch { repository.deleteNote(note) }
+              fun insertSavings(name: String, type: String, amount: Double, notes: String = "") {
+                  viewModelScope.launch {
+                      repository.insertSavings(SavingsEntity(name = name, type = type, amount = amount, date = System.currentTimeMillis(), notes = notes))
+                  }
+              }
+              fun deleteSavings(savings: SavingsEntity) = viewModelScope.launch { repository.deleteSavings(savings) }
+
+              fun getMonthStart(): Long {
+                  val cal = Calendar.getInstance()
+                  cal.set(Calendar.DAY_OF_MONTH, 1)
+                  cal.set(Calendar.HOUR_OF_DAY, 0)
+                  cal.set(Calendar.MINUTE, 0)
+                  cal.set(Calendar.SECOND, 0)
+                  return cal.timeInMillis
+              }
+              fun getMonthEnd(): Long {
+                  val cal = Calendar.getInstance()
+                  cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH))
+                  cal.set(Calendar.HOUR_OF_DAY, 23)
+                  cal.set(Calendar.MINUTE, 59)
+                  cal.set(Calendar.SECOND, 59)
+                  return cal.timeInMillis
+              }
+          }
+
+          class AppViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
+              override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                  if (modelClass.isAssignableFrom(AppViewModel::class.java)) {
+                      @Suppress("UNCHECKED_CAST")
+                      return AppViewModel(application) as T
+                  }
+                  throw IllegalArgumentException("Unknown ViewModel class")
+              }
+          }
+          ENDOFFILE
+
+      - name: Commit files
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git add -A
+          git commit -m "Add repository and viewmodel files" || echo "No changes"
+          git push
